@@ -1,0 +1,7 @@
+.env
+*~ 
+*#
+.Rhistory
+.directory
+*.nc
+*.Rdata
