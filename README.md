@@ -1,4 +1,4 @@
-# Explore2 pêche aux outils [<img src="resources/LogoExplore2.png" align="right" width=160 alt=""/>](https://professionnels.ofb.fr/fr/node/1244)
+# Explore2 pêche aux outils [<img src="resources/LogoExplore2.png" align="right" width=160 alt=""/>](https://github.com/super-lou/Explore2_toolbox/blob/c3b69377345919a2048826beac0841c37086db4e/resources/logo/LogoExplore2.png)
 
 <!-- badges: start -->
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-green)](https://lifecycle.r-lib.org/articles/stages.html)
@@ -14,7 +14,7 @@ Ce projet a été rendu possible dans le cadre d'un développement réalisé par
 
 
 ## Téléchargement du code
-Soit en clonant le répertoire git
+Soit en clonant le répertoire git :
 ``` 
 git clone https://github.com/super-lou/Explore2_peche_aux_outils.git
 ```
