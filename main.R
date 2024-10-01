@@ -1,4 +1,4 @@
-# Copyright 2024 Louis Héraut (louis.heraut@inrae.fr)*1,
+# Copyright 2024 Louis Héraut (louis.heraut@inrae.fr)*1
 #
 # *1   INRAE, France
 #
@@ -647,7 +647,6 @@ cours_eau = sf::st_simplify(cours_eau,
                             preserveTopology=TRUE,
                             dTolerance=tolerance*0.4)
 
-
 # Title
 title = ggplot() + theme_void() +
     annotate("text",
@@ -731,7 +730,7 @@ data_delta$fill = get_colors(data_delta$mean_delta,
 # Obtention des couches d'affichage de chaque point
 palette_match = match(data_delta$fill, Palette)
 data_delta$level = Palette_level[palette_match]
-Levels = unique(data_delta$level)
+Levels = as.numeric(levels(factor(data_delta$level)))
 
 # Affichage des shapefiles
 map = map +
@@ -753,8 +752,8 @@ map = map +
             fill=NA, linewidth=0.45)
 
 # Affichage des changements par couche
-for (level in Levels) {
-    data_delta_level = dplyr::filter(data_delta, level==level)
+for (l in Levels) {
+    data_delta_level = dplyr::filter(data_delta, level==l)
     map = map +
         geom_point(data=data_delta_level,
                    aes(x=L93_X, y=L93_Y),
@@ -768,7 +767,7 @@ map = map +
     coord_sf(xlim=xlim, ylim=ylim,
              expand=FALSE)
 
-
+# Affichage de la palette
 label = delta_labels(bin)
 cb = panel_colorbar_circle(bin,
                            Palette,
@@ -786,7 +785,7 @@ cb = panel_colorbar_circle(bin,
                            margin=margin(t=-1, r=0,
                                          b=1.5, l=7, "cm"))
 
-
+# Mise en forme des graphs
 plan = matrix(c("title", "title", "title",
                 "map", "map", "map",
                 "map", "map", "cb",
@@ -815,9 +814,9 @@ paper_size = c(width=15, height=15)
 plot = return_to_sheepfold(herd,
                            paper_size=paper_size,
                            page_margin=c(t=0.5, r=0.5,
-                                         b=0.5, l=0.5),
-                           verbose=TRUE)$plot
+                                         b=0.5, l=0.5))$plot
 
+# Sauvegarde
 ggsave(plot=plot,
        filename=file.path(figures_dir,
                           paste0("DRIAS_indicateurs_",
