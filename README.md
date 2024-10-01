@@ -1,4 +1,4 @@
-# Explore2 pêche aux outils [<img src="resources/LogoExplore2.png" align="right" width=160 alt=""/>](https://github.com/super-lou/Explore2_toolbox/blob/c3b69377345919a2048826beac0841c37086db4e/resources/logo/LogoExplore2.png)
+# Explore2 pêche aux outils [<img src="https://github.com/super-lou/Explore2_toolbox/blob/c3b69377345919a2048826beac0841c37086db4e/resources/logo/LogoExplore2.png" align="right" width=160 alt=""/>](https://professionnels.ofb.fr/fr/node/1244)
 
 <!-- badges: start -->
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-green)](https://lifecycle.r-lib.org/articles/stages.html)
