@@ -19,6 +19,38 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 
+#    _    _    _               _    _            
+#   /_\  | |_ | |_  ___  _ _  | |_ (_) ___  _ _  
+#  / _ \ |  _||  _|/ -_)| ' \ |  _|| |/ _ \| ' \ 
+# /_/ \_\ \__| \__|\___||_||_| \__||_|\___/|_||_| ____________________
+#
+# Ce script permet d'automatiser l'exploration d'un site web. 
+# Cependant, en réutilisant tout ou partie de ce script, vous 
+# assumez l'entière responsabilité des risques suivants :
+#
+# - Violation des conditions d'utilisation : L'exploration non 
+# autorisée d'un site peut entraîner des sanctions légales ou un
+# blocage de votre accès.
+#
+# - Atteinte à la vie privée : Le scraping de données sensibles peut
+# violer les lois sur la protection des données.
+#
+# - Surcharge des serveurs : Un taux de requêtes non contrôlé peut
+# entraîner une surcharge et être interprété comme une attaque, avec
+# des conséquences légales.
+#
+# - Blocage IP : Les mécanismes anti-bots peuvent bloquer votre
+# adresse IP.
+#
+# - Risques juridiques : Vous pourriez être tenu responsable de
+# toute violation des droits d'auteur ou autres lois.
+#
+# En utilisant ce script, vous reconnaissez et acceptez que vous êtes
+# seul responsable de toute action ou conséquence légale liée à son
+# exécution.
+# ____________________________________________________________________
+
+
 # Load necessary library
 if(!require(rvest)) install.packages("rvest", dependencies=TRUE)
 if(!require(dplyr)) install.packages("dplyr", dependencies=TRUE)
