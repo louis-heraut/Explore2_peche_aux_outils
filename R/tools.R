@@ -1,4 +1,22 @@
-
+# Copyright 2024 Louis Héraut (louis.heraut@inrae.fr)*1
+#
+# *1   INRAE, France
+#
+# This file is part of Explore2 R toolbox.
+#
+# Explore2 R toolbox is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Explore2 R toolbox is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Explore2 R toolbox.
+# If not, see <https://www.gnu.org/licenses/>.
 
 
 get_DRIAS_netcdf = function (Urls, outdir) {

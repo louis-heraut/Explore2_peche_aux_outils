@@ -32,6 +32,7 @@ if(!require(remotes)) install.packages("remotes")
 if(!require(dataSHEEP)) remotes::install_github("super-lou/dataSHEEP")
 
 ## 0.2. Source _______________________________________________________
+setwd(".")
 Scripts = list.files("R", full.names=TRUE)
 for (script in Scripts) {
     source(script)    
