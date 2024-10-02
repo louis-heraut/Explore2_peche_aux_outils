@@ -19,6 +19,10 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 
+# Chemin du dossier téléchargé à changer
+setwd("~/Documents/bouleau/INRAE/project/Explore2_project/Explore2_peche_aux_outils/")
+
+
 ## 0. INFO ___________________________________________________________
 # 0.1. Library _______________________________________________________
 if(!require(ncdf4)) install.packages("ncdf4")
@@ -32,7 +36,6 @@ if(!require(remotes)) install.packages("remotes")
 if(!require(dataSHEEP)) remotes::install_github("super-lou/dataSHEEP")
 
 ## 0.2. Source _______________________________________________________
-setwd(".")
 Scripts = list.files("R", full.names=TRUE)
 for (script in Scripts) {
     source(script)    
@@ -160,7 +163,7 @@ NC = nc_open(Paths[1])
 
 # Dans un premier temps, il est possible d'obtenir la liste des
 # attributs globaux ...
-ncatt_get(NC, "")$value
+ncatt_get(NC, "")
 # ou un seul spécifiquement
 ncatt_get(NC, "", "hy_institute_id")$value
 # De la même manière, il est possible d'obtenir les attributs
@@ -192,9 +195,9 @@ start = c(id, 1)
 # l'entiereté de la dimension "time"
 count = c(1, -1)
 # Ainsi, on peut obtenir les débits de la Dore à Dora pour ce NetCDF
-Q = ncvar_get(NC, "debit",
-              start=start,
-              count=count)
+debit = ncvar_get(NC, "debit",
+                  start=start,
+                  count=count)
 
 # et son vecteur temps associé
 Date = ncvar_get(NC, "time") + as.Date("1950-01-01")
