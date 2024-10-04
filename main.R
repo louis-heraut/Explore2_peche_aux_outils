@@ -504,7 +504,7 @@ for (storyline in Storylines) {
     plot = plot +
         geom_line(data=data_storyline_med,
                   aes(x=date,
-                      y=deltaVCN10),
+                      y=get(delta_variable)),
                   color=storyline$color,
                   linewidth=0.6,
                   alpha=1,
