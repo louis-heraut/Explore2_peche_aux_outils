@@ -156,6 +156,7 @@ get_DRIAS_netcdf(Urls, "DRIAS_projections")
 ### 1.4. Lire un NetCDF ______________________________________________
 # Obtenir l'ensemble des chemins des NetCDFs téléchargés
 Paths = list.files(file.path("DRIAS_projections"),
+                   recursive=TRUE,
                    full.names=TRUE)
 
 # Le package ncdf4 permet de lire un NetCDF
@@ -339,6 +340,7 @@ get_DRIAS_netcdf(Urls, "DRIAS_indicateurs")
 ### 2.4. Lire un NetCDF ______________________________________________
 # Obtenir l'ensemble des chemins des NetCDFs téléchargés
 Paths = list.files(file.path("DRIAS_indicateurs"),
+                   recursive=TRUE,
                    full.names=TRUE)
 
 # Le NetCDF peut être ouvert de la même manière
