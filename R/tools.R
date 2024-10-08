@@ -90,25 +90,25 @@ read_DRIAS_netcdf = function (Paths, Codes) {
         X = c(t(X))
         X[is.nan(X)] = NA
 
-        path_info = unlist(strsplit(path, "_"))
+        path_info = unlist(strsplit(basename(path), "_"))
 
         if (grepl("TIMEseries", basename(path))) {
             data_tmp =
-                dplyr::tibble(EXP=path_info[10],
-                              GCM=path_info[11],
-                              RCM=path_info[12],
-                              BC=path_info[9],
-                              HM=gsub("[.].*", "", path_info[13]),
+                dplyr::tibble(EXP=path_info[9],
+                              GCM=path_info[10],
+                              RCM=path_info[11],
+                              BC=path_info[8],
+                              HM=gsub("[.].*", "", path_info[12]),
                               code=rep(Codes, each=nDate),
                               date=rep(Date, times=nCodes),
                               !!variable:=X)
         } else {
             data_tmp =
-                dplyr::tibble(EXP=path_info[5],
-                              GCM=path_info[4],
-                              RCM=path_info[7],
-                              BC=path_info[9],
-                              HM=path_info[10],
+                dplyr::tibble(EXP=path_info[4],
+                              GCM=path_info[3],
+                              RCM=path_info[6],
+                              BC=path_info[8],
+                              HM=path_info[9],
                               code=rep(Codes, each=nDate),
                               date=rep(Date, times=nCodes),
                               !!variable:=X)
@@ -182,7 +182,9 @@ get_minor_breaks = function(X) {
 
 delta_labels <- function(x) {
     sapply(x, function(y) {
-        if (y > 0) {
+        if (is.na(y)) {
+            y
+        } else if (y > 0) {
             paste0("+", y, "%")
         } else if (y == 0) {
             y 

@@ -124,6 +124,10 @@ BC = unique(URL$BC)
 HM = unique(URL$HM)
 Variables = unique(URL$variable)
 
+# Choix d'un nom de dossier pour une selection de NetCDF de projection
+projection_dir = paste0("DRIAS_projections_",
+                        "narratif_J2000_GRSD")
+
 ### 1.2. Filtrer les URLs ____________________________________________
 # Soit en utilisant le tibble URL avec dplyr pour une combinaison
 # spécifique ...
@@ -148,14 +152,14 @@ Urls = URL_filtered$url
 
 # Soit en lisant directement un fichier txt qui contient une liste des
 # URLs récupérés par le biais de la plateforme DRIAS-Eau
-Urls = readLines("manual_URL_DRIAS_projections.txt")
+# Urls = readLines("manual_URL_DRIAS_projections.txt")
 
 ### 1.3. Obtenir les NetCDFs _________________________________________
-get_DRIAS_netcdf(Urls, "DRIAS_projections")
+get_DRIAS_netcdf(Urls, projection_dir)
 
 ### 1.4. Lire un NetCDF ______________________________________________
 # Obtenir l'ensemble des chemins des NetCDFs téléchargés
-Paths = list.files(file.path("DRIAS_projections"),
+Paths = list.files(projection_dir,
                    recursive=TRUE,
                    full.names=TRUE)
 
@@ -319,7 +323,44 @@ URL = dplyr::as_tibble(read.table(
 EXP = unique(URL$EXP)
 BC = unique(URL$BC)
 HM = unique(URL$HM)
-Indicateurs = unique(URL$indicateur)
+Indicateurs_DRIAS = unique(URL$indicateur)
+Indicateurs = gsub("Debit-", "",
+                   gsub("[_].*", "", Indicateurs_DRIAS))
+
+# Il est donc par exemple préférable de faire un dossier de NetCDF
+# par indicateur pour simplifier les interactions avec les fichiers
+# Donc pour un indicateur :
+# Nom dans le fichier (liste disponible dans Indicateurs_DRIAS)
+indicateur_DRIAS =
+    "Debit-VCN10_Saisonnier"
+    # "Debit-QA_Saisonnier"
+# Nom dans le NetCDF (liste disponible dans Indicateurs) 
+indicateur =
+    "VCN10"
+    # "QA"
+# Nom de l'indicateur à afficher, utile par exemple pour les
+# variables saisonnière comme "QA hiver"
+indicateur_to_display =
+    "VCN10 saisonnier"
+    # "QA hiver"
+# Pour les variable saisonnière comme le QA à toutes les saisons,
+# il est utile d'avoir un pattern pour sélectionner après
+# téléchargement des NetCDF pour toutes les saisons uniquement ceux
+# de la saison d'intérêt par exemple "DJF", par défaut "*".
+indicateur_pattern =
+    "*"
+    # "DJF"
+
+# Nom de la moyenne de cet indicateur
+mean_indicateur = paste0("mean", indicateur)
+# Nom de l'indicateur de changement
+delta_indicateur = paste0("delta", indicateur)
+# Est ce que cet indicateur est à normalisable ?
+to_normalise = TRUE
+
+# Nom du dossier ou stocker les NetCDF
+indicateur_dir =  paste0("DRIAS_indicateurs_",
+                         indicateur_DRIAS)
 
 ### 2.2. Filtrer les URLs ____________________________________________
 # Soit en utilisant le tibble URL avec dplyr
@@ -327,19 +368,20 @@ URL_filtered = dplyr::filter(URL,
                              EXP == "rcp85" &
                              BC == "MF-ADAMONT" &
                              HM %in% c("J2000", "GRSD") &
-                             indicateur == "Debit-VCN10_Saisonnier")
+                             indicateur == indicateur_DRIAS)
 Urls = URL_filtered$url
 
 # Soit en lisant directement un fichier txt qui contient une liste des
 # URLs récupérés par le biais de la plateforme DRIAS-Eau
-Urls = readLines("manual_URL_DRIAS_indicateurs.txt")
+# Urls = readLines("manual_URL_DRIAS_indicateurs.txt")
 
 ### 2.3. Obtenir les NetCDFs _________________________________________
-get_DRIAS_netcdf(Urls, "DRIAS_indicateurs")
+get_DRIAS_netcdf(Urls, indicateur_dir)
 
 ### 2.4. Lire un NetCDF ______________________________________________
 # Obtenir l'ensemble des chemins des NetCDFs téléchargés
-Paths = list.files(file.path("DRIAS_indicateurs"),
+Paths = list.files(indicateur_dir,
+                   pattern=indicateur_pattern, 
                    recursive=TRUE,
                    full.names=TRUE)
 
@@ -349,17 +391,7 @@ NC = nc_open(Paths[1])
 # Par conséquent, pour obtenir un tableau de donnée prêt à traiter pour la Dore à Dora
 code = "K298191001"
 data = read_DRIAS_netcdf(Paths, code)
-# Avec des infos sur la variable
-# Nom dans le NetCDF
-variable = "VCN10"
-# Nom de la variable à afficher
-variable_to_display = "VCN10 estival"
-# Nom de la moyenne de cette variable
-mean_variable = paste0("mean", variable)
-# Nom de la variable de changement
-delta_variable = paste0("delta", variable)
-# Est ce que cette variable est à normalisable ?
-to_normalise = TRUE
+
 
 ### 2.5. Afficher les indicateurs ____________________________________
 #### 2.5.1. en série annuelle ________________________________________
@@ -378,13 +410,13 @@ plot = ggplot() +
 
     # Titre
     ggtitle(TeX(paste0(code, " - \\textbf{",
-                       variable_to_display,
+                       indicateur_to_display,
                        "} \\small{m$^{3}$.s$^{-1}$}"))) +
 
     # Affichage des chaînes de modélisation
     geom_line(data=data,
               aes(x=date,
-                  y=get(variable),
+                  y=get(indicateur),
                   group=chain),
               color="grey65",
               linewidth=0.4,
@@ -400,14 +432,14 @@ for (storyline in Storylines) {
     data_storyline_med = data_storyline %>%
         dplyr::group_by(climate_chain,
                         date) %>%
-        dplyr::summarise(!!variable:=median(get(variable),
+        dplyr::summarise(!!indicateur:=median(get(indicateur),
                                             na.rm=TRUE),
                          .groups="drop")
 
     plot = plot +
         geom_line(data=data_storyline_med,
                   aes(x=date,
-                      y=get(variable)),
+                      y=get(indicateur)),
                   color=storyline$color,
                   linewidth=0.6,
                   alpha=1,
@@ -432,27 +464,27 @@ ggsave(plot=plot,
        filename=file.path(figures_dir,
                           paste0("DRIAS_indicateurs_",
                                  code, "_",
-                                 gsub(" ", "_", variable_to_display),
+                                 gsub(" ", "_", indicateur_to_display),
                                  ".pdf")),
        width=30, height=10, units="cm")
 
 #### 2.5.2. en changement annuel _____________________________________
-# Filtrage de la partie historique et moyenne de la variable sur
+# Filtrage de la partie historique et moyenne de l'indicateur sur
 # cette période pour chaque chaîne
 data_historical = data %>%
     dplyr::group_by(chain) %>%
     dplyr::filter(historical[1] <= date &
                   date <= historical[2]) %>%
-    dplyr::summarise(!!mean_variable:=mean(get(variable), na.rm=TRUE))
+    dplyr::summarise(!!mean_indicateur:=mean(get(indicateur), na.rm=TRUE))
 
 # Jointure avec les anciennes données
 data = dplyr::left_join(data, data_historical, by="chain")
 
 # Calcul du changement par rapport à la période de référence
 # historique
-data[[delta_variable]] =
-    (data[[variable]] - data[[mean_variable]]) /
-    data[[mean_variable]] * 100
+data[[delta_indicateur]] =
+    (data[[indicateur]] - data[[mean_indicateur]]) /
+    data[[mean_indicateur]] * 100
 
 # Définition du plot et du theme
 plot = ggplot() +
@@ -469,7 +501,7 @@ plot = ggplot() +
 
     # Titre
     ggtitle(TeX(paste0(code, " - changement de \\textbf{",
-                       variable_to_display,
+                       indicateur_to_display,
                        "}"))) +
 
     # Ligne du zéro
@@ -484,7 +516,7 @@ plot = ggplot() +
     # Affichage des séries de changements
     geom_line(data=data,
               aes(x=date,
-                  y=get(delta_variable),
+                  y=get(delta_indicateur),
                   group=chain),
               color="grey65",
               linewidth=0.4,
@@ -499,14 +531,14 @@ for (storyline in Storylines) {
 
     data_storyline_med = data_storyline %>%
         dplyr::group_by(climate_chain, date) %>%
-        dplyr::summarise(!!delta_variable:=
-                             median(get(delta_variable), na.rm=TRUE),
+        dplyr::summarise(!!delta_indicateur:=
+                             median(get(delta_indicateur), na.rm=TRUE),
                          .groups="drop")
     
     plot = plot +
         geom_line(data=data_storyline_med,
                   aes(x=date,
-                      y=get(delta_variable)),
+                      y=get(delta_indicateur)),
                   color=storyline$color,
                   linewidth=0.6,
                   alpha=1,
@@ -533,7 +565,7 @@ ggsave(plot=plot,
                           paste0("DRIAS_indicateurs_",
                                  code, "_",
                                  "delta_",
-                                 gsub(" ", "_", variable_to_display),
+                                 gsub(" ", "_", indicateur_to_display),
                                  ".pdf")),
        width=30, height=10, units="cm")
 
@@ -578,7 +610,7 @@ data_delta =
                # ces colonnes aussi
                dplyr::group_by(code, chain,
                                EXP, GCM, RCM, BC, HM) %>%
-               dplyr::summarise(historical=mean(get(variable),
+               dplyr::summarise(historical=mean(get(indicateur),
                                                 na.rm=TRUE),
                                 .groups="drop"),
 
@@ -587,14 +619,14 @@ data_delta =
                dplyr::filter(horizon[1] <= date &
                              date <= horizon[2]) %>%
                dplyr::group_by(code, chain) %>%
-               dplyr::summarise(horizon=mean(get(variable),
+               dplyr::summarise(horizon=mean(get(indicateur),
                                              na.rm=TRUE),
                                 .groups="drop"),
 
                by=c("code", "chain"))
 
 
-# Calcule des changements relatifs ou absolues selon si la variable
+# Calcule des changements relatifs ou absolues selon si l'indicateur
 # doit être normalisé
 if (to_normalise) {
     data_delta$delta =
@@ -656,9 +688,9 @@ cours_eau = sf::st_simplify(cours_eau,
 # Title
 title = ggplot() + theme_void() +
     annotate("text",
-             x=0, y=1, hjust=0, vjust=1,
+             x=0, y=0.95, hjust=0, vjust=1,
              label=TeX(paste0("Changement de \\textbf{",
-                              variable_to_display,
+                              indicateur_to_display,
                               "} en fin de siècle")),
              color="grey20") +
     scale_x_continuous(expand=c(0, 0),
@@ -828,7 +860,7 @@ ggsave(plot=plot,
                           paste0("DRIAS_indicateurs_",
                                  "carte_",
                                  "delta_",
-                                 gsub(" ", "_", variable_to_display),
+                                 gsub(" ", "_", indicateur_to_display),
                                  ".pdf")),
        width=paper_size[1],
        height=paper_size[2], units="cm")
