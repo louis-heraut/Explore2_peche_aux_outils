@@ -25,6 +25,7 @@ setwd("~/Documents/bouleau/INRAE/project/Explore2_project/Explore2_peche_aux_out
 
 ## 0. INFO ___________________________________________________________
 # 0.1. Library _______________________________________________________
+if(!require(httr)) install.packages("httr")
 if(!require(ncdf4)) install.packages("ncdf4")
 if(!require(lubridate)) install.packages("lubridate")
 if(!require(dplyr)) install.packages("dplyr")
@@ -359,8 +360,8 @@ delta_indicateur = paste0("delta", indicateur)
 to_normalise = TRUE
 
 # Nom du dossier ou stocker les NetCDF
-indicateur_dir =  paste0("DRIAS_indicateurs_",
-                         indicateur_DRIAS)
+indicateur_dir = paste0("DRIAS_indicateurs_",
+                        indicateur_DRIAS)
 
 ### 2.2. Filtrer les URLs ____________________________________________
 # Soit en utilisant le tibble URL avec dplyr
