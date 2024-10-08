@@ -35,13 +35,25 @@ get_DRIAS_netcdf = function (Urls, outdir) {
         path = file.path(outdir, file)
         download.file(url, destfile=path, mode="wb")
         if (format == "zip") {
-            unzip(path, exdir=outdir)
-            Paths = list.files(gsub(".zip", "", path),
-                               full.names=TRUE)
-            file.rename(Paths,
-                        file.path(outdir, basename(Paths)))
-            unlink(unique(dirname(Paths)), recursive=TRUE)
-            unlink(path, recursive=TRUE)
+            result = tryCatch({
+                unzip(path, exdir=outdir)
+                TRUE
+            }, error = function(e) {
+                FALSE
+            }, warning = function(w) {
+                TRUE
+            })
+            if (result) {
+                unzip(path, exdir=outdir)
+                Paths = list.files(gsub(".zip", "", path),
+                                   full.names=TRUE)
+                file.rename(Paths,
+                            file.path(outdir, basename(Paths)))
+                unlink(unique(dirname(Paths)), recursive=TRUE)
+                unlink(path, recursive=TRUE)
+            } else {
+                print("/!\ Merci de bien vouloir déziper les fichers téléchargés avant de continuer")
+            }
         }
     }
 }
