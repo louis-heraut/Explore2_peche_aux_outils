@@ -33,8 +33,8 @@ get_DRIAS_netcdf = function (Urls, outdir) {
         file = basename(url)
         format = gsub(".*[.]", "", file)
         path = file.path(outdir, file)
-        # download.file(url, destfile=path, mode="wb")
-        writeBin(httr::content(httr::GET(url), "raw"), path)
+        download.file(url, destfile=path, mode="wb")
+        # writeBin(httr::content(httr::GET(url), "raw"), path)
         if (format == "zip") {
             unzip(path, exdir=outdir)
             Paths = list.files(gsub(".zip", "", path),
