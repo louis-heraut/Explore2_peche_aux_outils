@@ -19,13 +19,12 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 
-# Chemin du dossier téléchargé à changer
-setwd("~/Documents/bouleau/INRAE/project/Explore2_project/Explore2_peche_aux_outils/")
+# Chemin du dossier à changer
+setwd("C:/Users/esauquet/Desktop/Explore2_peche_aux_outils-main/")
 
 
 ## 0. INFO ___________________________________________________________
 # 0.1. Library _______________________________________________________
-if(!require(httr)) install.packages("httr")
 if(!require(ncdf4)) install.packages("ncdf4")
 if(!require(lubridate)) install.packages("lubridate")
 if(!require(dplyr)) install.packages("dplyr")
@@ -35,6 +34,7 @@ if(!require(latex2exp)) install.packages("latex2exp")
 if(!require(sf)) install.packages("sf")
 if(!require(remotes)) install.packages("remotes")
 if(!require(dataSHEEP)) remotes::install_github("super-lou/dataSHEEP")
+if(!require(httr)) install.packages("httr")
 
 ## 0.2. Source _______________________________________________________
 Scripts = list.files("R", full.names=TRUE)
@@ -51,7 +51,7 @@ shapefiles_dir = "shapefiles"
 
 ## 0.4. Narratifs ____________________________________________________
 # La liste des narratifs ainsi que quelques données utiles les
-# concernants
+# concernant
 Storylines = list(
     vert=list(
         name="vert",
@@ -125,7 +125,7 @@ BC = unique(URL$BC)
 HM = unique(URL$HM)
 Variables = unique(URL$variable)
 
-# Choix d'un nom de dossier pour une selection de NetCDF de projection
+# Choix d'un nom de dossier pour une sélection de NetCDF de projections
 projection_dir = paste0("DRIAS_projections_",
                         "narratif_J2000_GRSD")
 
@@ -182,17 +182,17 @@ names(NC$var)
 # Donc par exemple pour obtenir le code des stations :
 Codes_NC = ncvar_get(NC, "code")
 
-# De cette manière, pour la Dore à Dora ...
+# De cette manière, pour la Dore à Dorat ...
 code = "K298191001"
 # il faut chercher son indice dans ce NetCDF
 id = match(code, Codes_NC)
-# Cet id permet donc d'aller chercher les informations d'intérêts dans
+# Cet id permet donc d'aller chercher les informations d'intérêt dans
 # ce NetCDF et uniquement dans celui-ci
 ncvar_get(NC, "topologicalSurface_model")[id]
 
 # Cependant, il est plus périlleux de vouloir répéter l'opération
 # précédente pour obtenir l'entierté de la matrice des débits.
-# Il est donc conseillé de n'en tier que la partie souhaité en
+# Il est donc conseillé de n'en extraire que la partie souhaitée en
 # utilisant les fonctionnalités internes aux NetCDFs
 # On part de l'indice id pour la première dimension "station" et on
 # part du début de la dimension seconde dimension "time"
@@ -200,7 +200,7 @@ start = c(id, 1)
 # On compte un seul pas sur la dimension "station" et on prend
 # l'entiereté de la dimension "time"
 count = c(1, -1)
-# Ainsi, on peut obtenir les débits de la Dore à Dora pour ce NetCDF
+# Ainsi, on peut obtenir les débits de la Dore à Dorat pour ce NetCDF
 debit = ncvar_get(NC, "debit",
                   start=start,
                   count=count)
@@ -208,8 +208,8 @@ debit = ncvar_get(NC, "debit",
 # et son vecteur temps associé
 Date = ncvar_get(NC, "time") + as.Date("1950-01-01")
 
-# Cette fonction reprend ce procédé avec une liste de station pour
-# obtenir un tibble près à être traiter
+# Cette fonction reprend ce procédé avec une liste de stations pour
+# obtenir un tibble prêt à être traité
 code = "K298191001"
 data = read_DRIAS_netcdf(Paths, Codes=code)
 
@@ -220,8 +220,8 @@ data = read_DRIAS_netcdf(Paths, Codes=code)
 # cherchera tous les codes commençant par cette expression.
 
 ### 1.5. Afficher les projections ____________________________________
-# Pour la Dora à Dora
-# Calcul de la date minimale parmis les chaînes de modélisation
+# Pour la Dora à Dorat
+# Calcul de la date minimale parmi les chaînes de modélisation
 min_date = data %>%
     dplyr::filter(EXP == "historical") %>%
     dplyr::group_by(chain) %>%
@@ -240,7 +240,7 @@ data = dplyr::filter(data,
                      min_date <= date &
                      date <= max_date)
 
-# Pour chaque narratif, calcule de la médiane des sur les modèles
+# Pour chaque narratif, calcule de la médiane sur l'nemseble des modèles
 # hydrologiques
 data_med = data %>%
     dplyr::group_by(climate_chain, date) %>%
@@ -333,16 +333,19 @@ Indicateurs = gsub("Debit-", "",
 # Donc pour un indicateur :
 # Nom dans le fichier (liste disponible dans Indicateurs_DRIAS)
 indicateur_DRIAS =
-    "Debit-VCN10_Saisonnier"
-    # "Debit-QA_Saisonnier"
+  "QMNA"
+#"Debit-VCN10_Saisonnier"
+# "Debit-QA_Saisonnier"
 # Nom dans le NetCDF (liste disponible dans Indicateurs) 
 indicateur =
-    "VCN10"
+   "QMNA"
+    # "VCN10"
     # "QA"
 # Nom de l'indicateur à afficher, utile par exemple pour les
 # variables saisonnière comme "QA hiver"
 indicateur_to_display =
-    "VCN10 saisonnier"
+  "QMNA"  
+  #"VCN10 saisonnier"
     # "QA hiver"
 # Pour les variable saisonnière comme le QA à toutes les saisons,
 # il est utile d'avoir un pattern pour sélectionner après
@@ -360,11 +363,11 @@ delta_indicateur = paste0("delta", indicateur)
 to_normalise = TRUE
 
 # Nom du dossier ou stocker les NetCDF
-indicateur_dir = paste0("DRIAS_indicateurs_",
-                        indicateur_DRIAS)
+indicateur_dir =  paste0("DRIAS_indicateurs_",
+                         indicateur_DRIAS)
 
 ### 2.2. Filtrer les URLs ____________________________________________
-# Soit en utilisant le tibble URL avec dplyr
+# # Soit en utilisant le tibble URL avec dplyr
 URL_filtered = dplyr::filter(URL,
                              EXP == "rcp85" &
                              BC == "MF-ADAMONT" &
@@ -396,7 +399,7 @@ data = read_DRIAS_netcdf(Paths, code)
 
 ### 2.5. Afficher les indicateurs ____________________________________
 #### 2.5.1. en série annuelle ________________________________________
-# Définition du plot et du theme
+# Définition du plot et du thème
 plot = ggplot() +
     theme_minimal() +
     theme(panel.grid.major.x=element_blank(),
@@ -569,299 +572,3 @@ ggsave(plot=plot,
                                  gsub(" ", "_", indicateur_to_display),
                                  ".pdf")),
        width=30, height=10, units="cm")
-
-#### 2.5.3. en carte de changements par horizon ______________________
-# Extraction de d'avantage de point
-data = read_DRIAS_netcdf(Paths, Codes="K")
-
-# Filtrage des points où les deux modèles hydrologiques choisis
-# contiennent de la donnée
-n_limits = 2
-Codes_selection = data %>%
-    dplyr::group_by(code) %>%
-    dplyr::summarise(n=length(unique(HM))) %>%
-    dplyr::filter(n_limits <= n)
-Codes_selection = Codes_selection$code
-data = dplyr::filter(data, code %in% Codes_selection)
-
-# Obtention des métadonnées de position
-NC = ncdf4::nc_open(Paths[1])
-Codes_NC = ncdf4::ncvar_get(NC, "code")
-L93_X = ncdf4::ncvar_get(NC, "L93_X")
-L93_Y = ncdf4::ncvar_get(NC, "L93_Y")
-Id = match(Codes_selection, Codes_NC)
-meta = dplyr::tibble(code=Codes_selection,
-                     L93_X=L93_X[Id],
-                     L93_Y=L93_Y[Id])
-
-# Choix de l'horizon
-horizon = Horizons$H3
-
-# Calcule des moyennes sur la période de référence et sur la
-# période future par chaîne et par point
-data_delta =
-    dplyr::full_join(
-
-               # Moyenne par chaîne sur la partie historique
-               # de référence
-               data %>%
-               dplyr::filter(historical[1] <= date &
-                             date <= historical[2]) %>%
-               # Grouper par EXP, GCM, RCM, BC, HM pour conserver
-               # ces colonnes aussi
-               dplyr::group_by(code, chain,
-                               EXP, GCM, RCM, BC, HM) %>%
-               dplyr::summarise(historical=mean(get(indicateur),
-                                                na.rm=TRUE),
-                                .groups="drop"),
-
-               # Moyenne par chaîne sur l'horizon choisi
-               data %>%
-               dplyr::filter(horizon[1] <= date &
-                             date <= horizon[2]) %>%
-               dplyr::group_by(code, chain) %>%
-               dplyr::summarise(horizon=mean(get(indicateur),
-                                             na.rm=TRUE),
-                                .groups="drop"),
-
-               by=c("code", "chain"))
-
-
-# Calcule des changements relatifs ou absolues selon si l'indicateur
-# doit être normalisé
-if (to_normalise) {
-    data_delta$delta =
-        (data_delta$horizon - data_delta$historical) /
-        data_delta$historical * 100
-} else {
-    data_delta$delta =
-        data_delta$horizon - data_delta$historical
-}
-
-# Moyenne par étape des changements par chaînes
-# sur les modèles hydrologiques
-data_delta = data_delta %>%
-    group_by(code, EXP, GCM, RCM, BC) %>%
-    summarise(mean_delta=mean(delta),
-              .groups="drop")
-# puis sur les corrections de biais
-data_delta = data_delta %>%
-    group_by(code, EXP, GCM, RCM) %>%
-    summarise(mean_delta=mean(mean_delta),
-                   .groups="drop")
-# et enfin sur les couples GCM / RCM
-data_delta = data_delta %>%
-    group_by(code, EXP) %>%
-    summarise(mean_delta=mean(mean_delta),
-              .groups="drop")
-
-# Ajout des métadonnées
-data_delta = dplyr::left_join(data_delta, meta, by="code")
-
-# Chargement des shapefiles
-# Facteur de simplification
-tolerance = 1000
-# France
-france_path = file.path(shapefiles_dir, "france")
-france = sf::st_read(france_path)
-france = sf::st_union(france)
-france = sf::st_transform(france, 2154)
-france = sf::st_simplify(france,
-                         preserveTopology=TRUE,
-                         dTolerance=tolerance)
-
-# Grands bassins hydrologiques
-bassin_path = file.path(shapefiles_dir, "bassin")
-bassin = sf::st_read(bassin_path)
-bassin = sf::st_transform(bassin, 2154)
-bassin = sf::st_simplify(bassin,
-                         preserveTopology=TRUE,
-                         dTolerance=tolerance*0.6)
-
-# Cours d'eau
-cours_eau_path = file.path(shapefiles_dir, "cours_eau_Explore2")
-cours_eau = sf::st_read(cours_eau_path)
-cours_eau = sf::st_transform(cours_eau, 2154)
-cours_eau = sf::st_simplify(cours_eau,
-                            preserveTopology=TRUE,
-                            dTolerance=tolerance*0.4)
-
-# Title
-title = ggplot() + theme_void() +
-    annotate("text",
-             x=0, y=0.95, hjust=0, vjust=1,
-             label=TeX(paste0("Changement de \\textbf{",
-                              indicateur_to_display,
-                              "} en fin de siècle")),
-             color="grey20") +
-    scale_x_continuous(expand=c(0, 0),
-                       limits=c(0, 1)) + 
-    scale_y_continuous(expand=c(0, 0),
-                       limits=c(0, 1))
-
-# Utilisation d'un système de coordonnées fixes 
-cf = coord_fixed()
-cf$default = TRUE
-# Nouveau plot pour une carte
-map = ggplot() + theme_void() + cf
-
-# Limites de la France
-xlim = c(90000, 1250000)
-ylim = c(6040000, 7120000)
-
-# Échelle de la carte
-xmin = gpct(62, xlim, shift=TRUE)
-xint = c(0, 50*1E3, 100*1E3, 250*1E3)
-ymin = gpct(5, ylim, shift=TRUE)
-ymax = ymin + gpct(1.3, ylim)
-size = 2.6
-sizekm = 2.5
-linewidth = 0.4
-
-map = map +
-    geom_line(aes(x=c(xmin, max(xint)+xmin),
-                  y=c(ymin, ymin)),
-              color="grey50", linewidth=linewidth,
-              lineend="round") +
-    annotate("text",
-             x=max(xint)+xmin+gpct(1, xlim), y=ymin,
-             vjust=0, hjust=0, label="km",
-             color="grey50", size=sizekm)
-for (x in xint) {
-    map = map +
-        annotate("segment",
-                 x=x+xmin, xend=x+xmin, y=ymin, yend=ymax,
-                 color="grey50", linewidth=linewidth,
-                 lineend="round") +
-        annotate("text",
-                 x=x+xmin, y=ymax+gpct(0.5, ylim),
-                 vjust=0, hjust=0.5, label=x/1E3,
-                 fontface="bold",
-                 color="grey50", size=size)
-}
-
-# Obtention de la palette sur mesure
-reverse = FALSE
-name = "ground_8"
-Palette_level = c(4, 3, 2, 1, 1, 2, 3, 4)
-Palette = get_IPCC_Palette(name, reverse=reverse)
-
-# Calcule de limites de la palette
-prob = 0.9
-min_delta = quantile(data_delta$mean_delta,
-                     prob, na.rm=TRUE)
-max_delta = quantile(data_delta$mean_delta,
-                     1-prob, na.rm=TRUE)
-
-res = compute_colorBin(min_delta, max_delta,
-                       colorStep=length(Palette),
-                       center=0, include=FALSE)
-bin = res$bin
-upBin = res$upBin
-lowBin = res$lowBin
-
-# Obtention des couleurs pour chaque delta
-data_delta$fill = get_colors(data_delta$mean_delta,
-                             upBin=upBin,
-                             lowBin=lowBin,
-                             Palette=Palette)
-
-# Obtention des couches d'affichage de chaque point
-palette_match = match(data_delta$fill, Palette)
-data_delta$level = Palette_level[palette_match]
-Levels = as.numeric(levels(factor(data_delta$level)))
-
-# Affichage des shapefiles
-map = map +
-    # Affichage du fond de carte de la France
-    geom_sf(data=france,
-            color=NA, fill="grey99") +
-    # Affichage du contour des bassins
-    geom_sf(data=bassin,
-            color="grey85",
-            fill=NA, size=0.2) +
-    # des cours d'eau
-    geom_sf(data=cours_eau,
-            color="DarkTurquoise",
-            alpha=1, fill=NA,
-            linewidth=0.3, na.rm=TRUE) +
-    # et de la France
-    geom_sf(data=france,
-            color="grey50",
-            fill=NA, linewidth=0.45)
-
-# Affichage des changements par couche
-for (l in Levels) {
-    data_delta_level = dplyr::filter(data_delta, level==l)
-    map = map +
-        geom_point(data=data_delta_level,
-                   aes(x=L93_X, y=L93_Y),
-                   fill=data_delta_level$fill,
-                   color="transparent",
-                   shape=21, size=1.4)
-}
-
-# Redécoupage de la carte
-map = map +
-    coord_sf(xlim=xlim, ylim=ylim,
-             expand=FALSE)
-
-# Affichage de la palette
-label = delta_labels(bin)
-cb = panel_colorbar_circle(bin,
-                           Palette,
-                           size_circle=3,
-                           d_line=0.2,
-                           linewidth=0.35,
-                           d_space=0.15,
-                           d_text=0.5,
-                           text_size=2.8,
-                           label=label,
-                           ncharLim=4,
-                           colorText="grey50",
-                           colorLine="grey50",
-                           on_circle=FALSE,
-                           margin=margin(t=-1, r=0,
-                                         b=1.5, l=7, "cm"))
-
-# Mise en forme des graphs
-plan = matrix(c("title", "title", "title",
-                "map", "map", "map",
-                "map", "map", "cb",
-                "map", "map", "map"),
-              byrow=TRUE, ncol=3)
-
-herd = bring_grass()
-herd = plan_of_herd(herd, plan)
-
-herd = add_sheep(herd,
-                 sheep=title,
-                 id="title",
-                 height=1)
-
-herd = add_sheep(herd,
-                 sheep=map,
-                 id="map",
-                 height=14)
-
-herd = add_sheep(herd,
-                 sheep=cb,
-                 id="cb",
-                 height=9)
-
-paper_size = c(width=15, height=15)
-plot = return_to_sheepfold(herd,
-                           paper_size=paper_size,
-                           page_margin=c(t=0.5, r=0.5,
-                                         b=0.5, l=0.5))$plot
-
-# Sauvegarde
-ggsave(plot=plot,
-       filename=file.path(figures_dir,
-                          paste0("DRIAS_indicateurs_",
-                                 "carte_",
-                                 "delta_",
-                                 gsub(" ", "_", indicateur_to_display),
-                                 ".pdf")),
-       width=paper_size[1],
-       height=paper_size[2], units="cm")
