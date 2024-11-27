@@ -73,9 +73,34 @@ crawl_url = function (base_url) {
     return (urls)
 }
 
+clean_url = function (URL) {
+    if ("variable" %in% names(URL)) {
+        URL = URL %>%
+            dplyr::relocate(EXP, .before=HM)  %>%
+            dplyr::relocate(BC, .after=RCM) %>%
+            dplyr::relocate(HM, .after=BC)  %>%
+            dplyr::arrange(variable, HM, BC,
+                           localisation)  %>%
+            dplyr::filter(!(GCM=="CNRM-CERFACS-CNRM-CM5" &
+                            RCM=="KNMI-RACMO22E") &
+                          !(GCM=="IPSL-IPSL-CM5A-MR" &
+                            RCM=="IPSL-WRF381P"))
+    } else {
+        URL = URL %>%
+            dplyr::relocate(EXP, .before=HM)  %>%
+            dplyr::relocate(BC, .before=HM)  %>%
+            dplyr::arrange(indicateur, HM, BC)
+    }
+    URL$HM[URL$HM == "C-TRIP"] = "CTRIP"
+    URL$BC[grepl("ADAMONT", URL$BC)] = "MF-ADAMONT"
+    URL$BC[grepl("CDFt", URL$BC)] = "LSCE-IPSL-CDFt"
+    
+    return (URL)
+}
+
 
 ## INDICATEURS _______________________________________________________
-crawl_DRIAS_indicateurs = function(base_url, sleep=0.5) {
+crawl_DRIAS_indicateurs = function(base_url, sleep=0.1) {
 
     urls = crawl_url(base_url)
     urls = urls[!grepl("(AQUI-FR)|(MONA)|(Recharge)", urls)]
@@ -116,9 +141,8 @@ crawl_DRIAS_indicateurs = function(base_url, sleep=0.5) {
     }
     URL = tidyr::unnest(dplyr::select(URL, -url), tmp)
     
-    URL = dplyr::relocate(URL, EXP, .before=HM)
-    URL = dplyr::relocate(URL, BC, .before=HM)
-
+    URL = clean_url(URL) 
+    
     return (URL)
 }
 
@@ -130,10 +154,10 @@ write.table(URL_DRIAS_indicateurs,
 
 
 ## PROJECTIONS _______________________________________________________
-crawl_DRIAS_projections = function(base_url, sleep=0.5) {
+crawl_DRIAS_projections = function(base_url, sleep=0.1) {
 
     urls = crawl_url(base_url)
-    urls = urls[!grepl("(AQUI-FR)|(MONA)|(Recharge)", urls)]
+    urls = urls[!grepl("(Recharge)", urls)]
     HM = gsub("EXPLORE2-2024_", "", names(urls))
     URL = dplyr::tibble(HM=HM, url=urls)
     Sys.sleep(sleep)
@@ -183,6 +207,26 @@ crawl_DRIAS_projections = function(base_url, sleep=0.5) {
         Sys.sleep(sleep)
     }
     URL = tidyr::unnest(dplyr::select(URL, -url), tmp)
+
+    get_nc = function (u) {
+        files = names(u)
+        files_info = strsplit(files, "_")
+        Variables = sapply(files_info, "[", 1)
+        Localisation = sapply(files_info, "[", 2)
+        Ok = Variables %in% c("debit", "niveau") &
+            !grepl("Grille", Localisation)
+        u = u[Ok]
+        Variables = Variables[Ok]
+        Localisation = gsub("Piezo", "",
+                            Localisation[Ok])
+        BC = sapply(files_info, "[", 8)[Ok]
+        URL_tmp = dplyr::tibble(variable=Variables,
+                                timestep=timestep,
+                                localisation=Localisation,
+                                BC=BC,
+                                url=u)
+        return (URL_tmp)
+    }
     
     URL$tmp = NA
     for (i in 1:nrow(URL)) {
@@ -192,30 +236,48 @@ crawl_DRIAS_projections = function(base_url, sleep=0.5) {
         rcm = URL$RCM[i]
         exp = URL$EXP[i]
         urls_tmp = crawl_url(url)
-        files = names(urls_tmp)
-        files_info = strsplit(files, "_")
-        Variables = sapply(files_info, "[", 1)
-        BC = sapply(files_info, "[", 8)
-        Ok = Variables == "debit"
-        urls_tmp = urls_tmp[Ok]
-        Variables = Variables[Ok]
-        BC = BC[Ok]
-        BC = gsub("France-", "", BC)
-        URL_tmp = dplyr::tibble(variable=Variables,
-                                BC=BC,
-                                url=urls_tmp)
-        URL$tmp[URL$HM == hm &
-                URL$GCM == gcm &
-                URL$RCM == rcm &
-                URL$EXP == exp] = list(URL_tmp)
-        Sys.sleep(sleep)
+        if ("day" %in% names(urls_tmp)) {
+            timestep = "day"
+            urls_tmp = crawl_url(urls_tmp["day"])
+        } else if ("year" %in% names(urls_tmp)) {
+            timestep = "year"
+            urls_tmp = crawl_url(urls_tmp["year"])
+        } else {
+            timestep = "day"
+        }
+        
+        if (!all(grepl("[.]nc", names(urls_tmp)))) {
+            for (j in 1:length(urls_tmp)) {
+                variable = names(urls_tmp[j])
+                urls_var_tmp = crawl_url(urls_tmp[j])
+
+                URL_tmp = get_nc(urls_var_tmp)
+
+                Ok = URL$HM == hm &
+                    URL$GCM == gcm &
+                    URL$RCM == rcm &
+                    URL$EXP == exp
+                if (is.na(URL$tmp[Ok])) {
+                    URL$tmp[Ok] = list(URL_tmp)
+                } else {
+                    URL$tmp[Ok] =
+                        list(dplyr::bind_rows(URL$tmp[Ok][[1]],
+                                              URL_tmp))
+                }
+            }
+        } else {
+            URL_tmp = get_nc(urls_tmp)
+            URL$tmp[URL$HM == hm &
+                    URL$GCM == gcm &
+                    URL$RCM == rcm &
+                    URL$EXP == exp] = list(URL_tmp)
+            Sys.sleep(sleep)
+        }
     }
     URL = tidyr::unnest(dplyr::select(URL, -url), tmp)
     
-    URL = dplyr::relocate(URL, EXP, .before=HM)
-    URL = dplyr::relocate(URL, BC, .after=RCM)
-    URL = dplyr::relocate(URL, HM, .after=BC)
-
+    URL = clean_url(URL)
+    
     return (URL)
 }
 
