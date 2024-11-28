@@ -79,12 +79,18 @@ clean_url = function (URL) {
             dplyr::relocate(EXP, .before=HM)  %>%
             dplyr::relocate(BC, .after=RCM) %>%
             dplyr::relocate(HM, .after=BC)  %>%
-            dplyr::arrange(variable, HM, BC,
-                           localisation)  %>%
+            dplyr::arrange(meta, HM, variable, BC,
+                           localisation) %>%
             dplyr::filter(!(GCM=="CNRM-CERFACS-CNRM-CM5" &
                             RCM=="KNMI-RACMO22E") &
                           !(GCM=="IPSL-IPSL-CM5A-MR" &
                             RCM=="IPSL-WRF381P"))
+        URL$variable[URL$variable == "debit"] =
+            "discharge"
+        URL$variable[URL$variable == "niveau"] =
+            "groundwater level"
+        URL$variable[URL$variable == "DRAINC"] =
+            "recharge"
     } else {
         URL = URL %>%
             dplyr::relocate(EXP, .before=HM)  %>%
@@ -157,7 +163,6 @@ write.table(URL_DRIAS_indicateurs,
 crawl_DRIAS_projections = function(base_url, sleep=0.1) {
 
     urls = crawl_url(base_url)
-    urls = urls[!grepl("(Recharge)", urls)]
     HM = gsub("EXPLORE2-2024_", "", names(urls))
     URL = dplyr::tibble(HM=HM, url=urls)
     Sys.sleep(sleep)
@@ -212,9 +217,11 @@ crawl_DRIAS_projections = function(base_url, sleep=0.1) {
         files = names(u)
         files_info = strsplit(files, "_")
         Variables = sapply(files_info, "[", 1)
+        HM = sapply(files_info, "[", 9)
         Localisation = sapply(files_info, "[", 2)
-        Ok = Variables %in% c("debit", "niveau") &
-            !grepl("Grille", Localisation)
+        Ok = (Variables %in% c("debit", "niveau") &
+              !grepl("Grille", Localisation)) |
+            (Variables == "DRAINC" & HM == "BRGM-RECHARGE")
         u = u[Ok]
         Variables = Variables[Ok]
         Localisation = gsub("Piezo", "",

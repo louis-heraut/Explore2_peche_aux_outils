@@ -135,7 +135,8 @@ projection_dir = paste0("DRIAS_projections_",
 URL_filtered = dplyr::filter(URL,
                              EXP == "rcp85" &
                              grepl("ADAMONT", BC) &
-                             HM %in% c("J2000", "GRSD"))
+                             HM %in% c("J2000", "GRSD") &
+                             variable == "discharge")
 
 # ou pour filtrer les narratifs Explore2
 URL_filtered = dplyr::tibble()

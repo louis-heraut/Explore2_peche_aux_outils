@@ -136,15 +136,6 @@ read_DRIAS_netcdf = function (Paths, Codes) {
 }
 
 
-merge_data_projections = function (data) {
-    
-    Chain = data$chain
-    
-    
-    return (data)
-}
-
-
 
 get_breaks = function(X) {
     breaks = "10 years"
