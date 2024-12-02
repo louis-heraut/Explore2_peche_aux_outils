@@ -79,7 +79,7 @@ clean_url = function (URL) {
             dplyr::relocate(EXP, .before=HM)  %>%
             dplyr::relocate(BC, .after=RCM) %>%
             dplyr::relocate(HM, .after=BC)  %>%
-            dplyr::arrange(meta, HM, variable, BC,
+            dplyr::arrange(HM, variable, BC,
                            localisation) %>%
             dplyr::filter(!(GCM=="CNRM-CERFACS-CNRM-CM5" &
                             RCM=="KNMI-RACMO22E") &
@@ -91,6 +91,8 @@ clean_url = function (URL) {
             "groundwater level"
         URL$variable[URL$variable == "DRAINC"] =
             "recharge"
+        URL$localisation = gsub("(Piezo)|(Grille)", "",
+                                URL$localisation)
     } else {
         URL = URL %>%
             dplyr::relocate(EXP, .before=HM)  %>%
@@ -152,11 +154,11 @@ crawl_DRIAS_indicateurs = function(base_url, sleep=0.1) {
     return (URL)
 }
 
-URL_DRIAS_indicateurs = crawl_DRIAS_indicateurs(DRIAS_base_url)
-write.table(URL_DRIAS_indicateurs,
-            file=file.path("robot", "URL_DRIAS_indicateurs.csv"),
-            quote=TRUE, sep=",",
-            row.names=FALSE)
+# URL_DRIAS_indicateurs = crawl_DRIAS_indicateurs(DRIAS_base_url)
+# write.table(URL_DRIAS_indicateurs,
+            # file=file.path("robot", "URL_DRIAS_indicateurs.csv"),
+            # quote=TRUE, sep=",",
+            # row.names=FALSE)
 
 
 ## PROJECTIONS _______________________________________________________
@@ -219,21 +221,26 @@ crawl_DRIAS_projections = function(base_url, sleep=0.1) {
         Variables = sapply(files_info, "[", 1)
         HM = sapply(files_info, "[", 9)
         Localisation = sapply(files_info, "[", 2)
-        Ok = (Variables %in% c("debit", "niveau") &
-              !grepl("Grille", Localisation)) |
+        Gridded = grepl("Grille", Localisation)
+        Ok = (Variables %in% c("debit", "niveau")) |
             (Variables == "DRAINC" & HM == "BRGM-RECHARGE")
         u = u[Ok]
         Variables = Variables[Ok]
-        Localisation = gsub("Piezo", "",
-                            Localisation[Ok])
+        Localisation = Localisation[Ok]
+        Gridded = Gridded[Ok]
         BC = sapply(files_info, "[", 8)[Ok]
-        URL_tmp = dplyr::tibble(variable=Variables,
+        URL_tmp = dplyr::tibble(BC=BC,
+                                variable=Variables,
                                 timestep=timestep,
                                 localisation=Localisation,
-                                BC=BC,
+                                gridded=Gridded,
                                 url=u)
         return (URL_tmp)
     }
+
+    # URL = filter(URL_save, GCM=="CNRM-CERFACS-CNRM-CM5" &
+                           # RCM=="CNRM-ALADIN63" &
+                           # EXP=="historical")
     
     URL$tmp = NA
     for (i in 1:nrow(URL)) {
